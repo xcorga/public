@@ -1,7 +1,6 @@
-import java.io.File
 import java.nio.file.Files
-import java.nio.file.Path
 import java.util.Properties
+import kotlin.apply
 import kotlin.io.path.exists
 import kotlin.io.path.isSymbolicLink
 import kotlin.io.path.notExists
@@ -19,44 +18,43 @@ private object FileMappingHelper {
     }.toRegex(setOf(RegexOption.MULTILINE, RegexOption.DOT_MATCHES_ALL))
 
     data class Mapping(
-        val source: Path,
-        val target: Path,
+        val source: java.nio.file.Path,
+        val target: java.nio.file.Path,
     )
 
-    fun doMapping(rootProjectDir: File) {
-        // 从local.properties读取config.dir属性，或者通过CONFIG_DIR_DEFAULT环境变量，来决定使用哪个配置目录
-        val configDir = rootProjectDir.resolve("local.properties")
-            .takeIf { it.exists() }
-            ?.let { loadProperties(it) }
-            ?.getProperty("config.dir")
-            ?: System.getenv("APP_CONFIG_DIR")
+    fun doMapping(rootProject: Project) {
+        // 按照以下优先级来决定使用哪个配置目录
+        val configDir = rootProject.findProperty("APP_CONFIG_DIR") as? String // Gradle -P参数
+            ?: loadPropertiesOrNull(rootProject.file("local.properties"))?.getProperty("config.dir") // 从local.properties读取config.dir属性
+            ?: System.getenv("APP_CONFIG_DIR") // 环境变量
             ?: throw IllegalArgumentException("Please configure the config.dir property in local.properties or configure the APP_CONFIG_DIR environment variable!")
 
         println("Reading config.dir from local.properties: $configDir")
 
         // 从file-mapping.txt读取文件映射关系
         val mappingList = readMappingFile(
-            file = rootProjectDir.resolve("file-mapping.txt"),
-            sourceDir = rootProjectDir.resolve(configDir),
-            targetDir = rootProjectDir
+            file = rootProject.file("file-mapping.txt"),
+            sourceDir = rootProject.file(configDir),
+            targetDir = rootProject.projectDir
         )
 
         // 映射后的路径写入.gitignore
         modifyGitIgnoreFile(
-            file = rootProjectDir.resolve(".gitignore"),
-            newContent = mappingList.map { it.target.toFile().toRelativeString(rootProjectDir) }
+            file = rootProject.file(".gitignore"),
+            newContent = mappingList.map { it.target.toFile().toRelativeString(rootProject.projectDir) }
         )
 
         // 开始映射
         mappingList.forEach(::updateSymbolicLink)
     }
 
-    private fun loadProperties(file: File): Properties {
-        if (!file.exists()) {
-            throw RuntimeException("The specified properties file does not exist: ${file.absolutePath}")
-        }
-        return Properties().apply {
-            file.inputStream().use { load(it) }
+    private fun loadPropertiesOrNull(file: File): Properties? {
+        return if (file.exists()) {
+            Properties().apply {
+                file.inputStream().use { load(it) }
+            }
+        } else {
+            null
         }
     }
 
@@ -145,4 +143,4 @@ private object FileMappingHelper {
     }
 }
 
-FileMappingHelper.doMapping(rootProjectDir = projectDir)
+FileMappingHelper.doMapping(rootProject = project)
