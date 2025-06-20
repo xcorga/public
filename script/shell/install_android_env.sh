@@ -18,21 +18,25 @@ TOOLS_DIR="$SDK_ROOT/cmdline-tools"
 TOOL_VERSION="latest"
 SDK_ZIP_URL="https://dl.google.com/android/repository/commandlinetools-linux-13114758_latest.zip"
 
-echo "📁 Step 2: 准备 SDK 安装目录：$TOOLS_DIR/$TOOL_VERSION"
-mkdir -p "$TOOLS_DIR"
-cd "$TOOLS_DIR"
+# 判断是否已经安装了commandline tools
+if [ ! -d "$TOOLS_DIR/$TOOL_VERSION" ]; then
+  echo "📁 Step 2: 准备 SDK 安装目录：$TOOLS_DIR/$TOOL_VERSION"
+  mkdir -p "$TOOLS_DIR"
+  cd "$TOOLS_DIR"
+  echo "🌐 Step 3: 下载 Android commandline tools..."
+  wget -O sdk-tools.zip "$SDK_ZIP_URL"
 
-echo "🌐 Step 3: 下载 Android commandline tools..."
-wget -O sdk-tools.zip "$SDK_ZIP_URL"
+  echo "📦 Step 4: 解压工具包..."
+  unzip sdk-tools.zip
+  rm sdk-tools.zip
 
-echo "📦 Step 4: 解压工具包..."
-unzip sdk-tools.zip
-rm sdk-tools.zip
+  echo "🔄 Step 5: 重命名目录为 $TOOL_VERSION（供 sdkmanager 识别）"
+  mv cmdline-tools "$TOOL_VERSION"
 
-echo "🔄 Step 5: 重命名目录为 $TOOL_VERSION（供 sdkmanager 识别）"
-mv cmdline-tools "$TOOL_VERSION"
-
-echo "✅ 工具下载与解压完成。"
+  echo "✅ 工具下载与解压完成。"
+else
+  echo "⚠️ cmdline-tools已安装，跳过。"
+fi
 
 # 添加环境变量到 shell 配置
 echo "🔧 Step 6: 配置环境变量..."
