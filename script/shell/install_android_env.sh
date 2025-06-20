@@ -1,6 +1,11 @@
 #!/bin/bash
 set -e
 
+# 获取当前登录会话的原始用户名
+REAL_USER=$(logname)
+# 安全解析该用户的 home 目录
+USER_HOME=$(eval echo "~$REAL_USER")
+
 echo "📦 Step 1: 安装必要依赖..."
 sudo apt update
 sudo apt install -y openjdk-21-jdk wget unzip curl lib32z1 libstdc++6 libncurses5
@@ -8,7 +13,7 @@ sudo apt install -y openjdk-21-jdk wget unzip curl lib32z1 libstdc++6 libncurses
 echo "✅ 依赖安装完成。"
 
 # 配置路径
-SDK_ROOT="$HOME/Android/Sdk"
+SDK_ROOT="$USER_HOME/Android/Sdk"
 TOOLS_DIR="$SDK_ROOT/cmdline-tools"
 TOOL_VERSION="latest"
 SDK_ZIP_URL="https://dl.google.com/android/repository/commandlinetools-linux-13114758_latest.zip"
@@ -31,7 +36,7 @@ echo "✅ 工具下载与解压完成。"
 
 # 添加环境变量到 shell 配置
 echo "🔧 Step 6: 配置环境变量..."
-ENV_CONFIG_FILE="$HOME/.bashrc"
+ENV_CONFIG_FILE="$USER_HOME/.bashrc"
 if ! grep -q ANDROID_SDK_ROOT "$ENV_CONFIG_FILE"; then
   cat <<'EOF' >> "$ENV_CONFIG_FILE"
 
@@ -48,7 +53,7 @@ else
 fi
 
 # 生效当前终端
-export ANDROID_SDK_ROOT="$HOME/android-sdk"
+export ANDROID_SDK_ROOT="$USER_HOME/android-sdk"
 export PATH="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$PATH"
 export PATH="$ANDROID_SDK_ROOT/platform-tools:$PATH"
 export PATH="$ANDROID_SDK_ROOT/emulator:$PATH"
