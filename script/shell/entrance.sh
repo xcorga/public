@@ -4,6 +4,7 @@ set -e
 # 定义脚本信息数组
 scripts=(
     "Linux配置远程桌面环境(xfce桌面+xrdp远程):install_xfce_rdp.sh"
+    "Linux配置Android SDK开发环境:install_android_env.sh"
     "Linux安装或更新Android Studio:install_android_studio.sh"
 )
 
