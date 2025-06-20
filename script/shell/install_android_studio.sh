@@ -2,13 +2,21 @@
 
 set -e
 
+# 获取当前登录会话的原始用户名
+REAL_USER=$(logname)
+# 安全解析该用户的 home 目录
+USER_HOME=$(eval echo "~$REAL_USER")
+
 echo "📥 下载 Android Studio..."
+# 在临时目录下载文件
 cd /tmp
+# 删除之前下载的文件
 rm -f android-studio.tar.gz
 wget https://redirector.gvt1.com/edgedl/android/studio/ide-zips/2024.3.2.15/android-studio-2024.3.2.15-linux.tar.gz -O android-studio.tar.gz
 
 echo "📦 解压并安装 Android Studio..."
 tar -xzf android-studio.tar.gz
+# 卸载之前的版本
 rm -rf /opt/android-studio
 sudo mv android-studio /opt/
 sudo ln -sf /opt/android-studio/bin/studio.sh /usr/local/bin/android-studio
@@ -18,7 +26,7 @@ echo "👉 可通过命令 'android-studio' 启动 Android Studio"
 
 echo "🎯 创建 Android Studio 桌面快捷方式..."
 
-DESKTOP_FILE="$HOME/.local/share/applications/android-studio.desktop"
+DESKTOP_FILE="$USER_HOME/.local/share/applications/android-studio.desktop"
 
 mkdir -p "$(dirname "$DESKTOP_FILE")"
 
@@ -37,7 +45,7 @@ EOF
 
 chmod +x "$DESKTOP_FILE"
 
-mkdir -p ~/Desktop
-cp $DESKTOP_FILE ~/Desktop/android-studio.desktop
+mkdir -p $USER_HOME/Desktop
+cp $DESKTOP_FILE $USER_HOME/Desktop/android-studio.desktop
 
 echo "✅ 快捷方式创建成功！你可以在桌面或者应用菜单中搜索 'Android Studio' 打开它。"
