@@ -28,6 +28,7 @@ echo "🎯 创建 Android Studio 桌面快捷方式..."
 
 sudo -u $REAL_USER $SHELL <<'SH_EOF'
 DESKTOP_FILE="~/.local/share/applications/android-studio.desktop"
+echo "DESKTOP_FILE=$DESKTOP_FILE"
 
 mkdir -p "$(dirname "$DESKTOP_FILE")"
 
