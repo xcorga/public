@@ -26,6 +26,7 @@ echo "👉 可通过命令 'android-studio' 启动 Android Studio"
 
 echo "🎯 创建 Android Studio 桌面快捷方式..."
 
+# 在用户目录下创建快捷方式
 sudo -u $REAL_USER $SHELL <<'SH_EOF'
 DESKTOP_FILE="~/.local/share/applications/android-studio.desktop"
 
