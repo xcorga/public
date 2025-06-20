@@ -30,7 +30,7 @@ DESKTOP_FILE="$USER_HOME/.local/share/applications/android-studio.desktop"
 
 mkdir -p "$(dirname "$DESKTOP_FILE")"
 
-cat > "$DESKTOP_FILE" <<EOF
+sudo cat > "$DESKTOP_FILE" <<EOF
 [Desktop Entry]
 Version=1.0
 Type=Application
