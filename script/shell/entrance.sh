@@ -29,7 +29,7 @@ if [ "$index" -ge 0 ] && [ "$index" -lt "${#scripts[@]}" ]; then
     script_file="${script_info#*:}"
 
     echo "执行脚本: $script_name"
-    /bin/bash -c "$(curl -fsSL "${prefix_url}${script_file}")"
+    sudo /bin/bash -c "$(curl -fsSL "${prefix_url}${script_file}")"
 else 
     echo "没找到'$index'对应的操作"
 fi
