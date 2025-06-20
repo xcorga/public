@@ -4,7 +4,7 @@ set -e
 # 定义脚本信息数组
 scripts=(
     "Linux配置远程桌面环境(xfce桌面+xrdp远程):install_xfce_rdp.sh"
-    "Linux安装Android Studio:install_android_studio.sh"
+    "Linux安装或更新Android Studio:install_android_studio.sh"
 )
 
 if [ -z "$1" ]; then
@@ -29,7 +29,7 @@ if [ "$index" -ge 0 ] && [ "$index" -lt "${#scripts[@]}" ]; then
     script_file="${script_info#*:}"
 
     echo "执行脚本: $script_name"
-    sudo /bin/bash -c "$(curl -fsSL "${prefix_url}${script_file}")"
+    /bin/bash -c "$(curl -fsSL "${prefix_url}${script_file}")"
 else 
     echo "没找到'$index'对应的操作"
 fi

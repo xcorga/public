@@ -17,7 +17,7 @@ wget https://redirector.gvt1.com/edgedl/android/studio/ide-zips/2024.3.2.15/andr
 echo "📦 解压并安装 Android Studio..."
 tar -xzf android-studio.tar.gz
 # 卸载之前的版本
-rm -rf /opt/android-studio
+sudo rm -rf /opt/android-studio
 sudo mv android-studio /opt/
 sudo ln -sf /opt/android-studio/bin/studio.sh /usr/local/bin/android-studio
 
@@ -43,7 +43,7 @@ Terminal=false
 StartupNotify=true
 EOF
 
-chmod +x "$DESKTOP_FILE"
+chmod +rwx "$DESKTOP_FILE"
 
 mkdir -p $USER_HOME/Desktop
 cp $DESKTOP_FILE $USER_HOME/Desktop/android-studio.desktop
