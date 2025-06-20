@@ -23,4 +23,4 @@ sudo ufw allow 3389/tcp || echo "⚠️ 防火墙未启用或 ufw 未安装"
 echo "⬇️ 安装firefox浏览器"
 sudo apt install -y firefox
 
-echo "✅ 所有步骤完成。你现在可以使用 Windows 远程桌面 (mstsc) 连接此主机（端口 3389）。"
+echo "✅ 所有步骤完成。你现在可以使用 Windows 远程桌面 (mstsc) 连接此主机（端口 3389）。如果连接不上请联系运维开通端口"
