@@ -11,7 +11,7 @@ echo "📥 下载 Android Studio..."
 # 在临时目录下载文件
 cd /tmp
 # 删除之前下载的文件
-rm -f android-studio.tar.gz
+sudo rm -f android-studio.tar.gz
 wget https://redirector.gvt1.com/edgedl/android/studio/ide-zips/2024.3.2.15/android-studio-2024.3.2.15-linux.tar.gz -O android-studio.tar.gz
 
 echo "📦 解压并安装 Android Studio..."
