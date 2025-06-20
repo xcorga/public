@@ -26,11 +26,11 @@ echo "👉 可通过命令 'android-studio' 启动 Android Studio"
 
 echo "🎯 创建 Android Studio 桌面快捷方式..."
 
+sudo -u $USER_HOME $SHELL <<EXEC
+qq
 DESKTOP_FILE="$USER_HOME/.local/share/applications/android-studio.desktop"
 
-mkdir -p "$(dirname "$DESKTOP_FILE")"
-
-sudo cat > "$DESKTOP_FILE" <<EOF
+cat > "$DESKTOP_FILE" <<EOF
 [Desktop Entry]
 Version=1.0
 Type=Application
@@ -43,9 +43,11 @@ Terminal=false
 StartupNotify=true
 EOF
 
-chmod +rwx "$DESKTOP_FILE"
+chmod +x "$DESKTOP_FILE"
 
 mkdir -p $USER_HOME/Desktop
 cp $DESKTOP_FILE $USER_HOME/Desktop/android-studio.desktop
+EXEC
+
 
 echo "✅ 快捷方式创建成功！你可以在桌面或者应用菜单中搜索 'Android Studio' 打开它。"
