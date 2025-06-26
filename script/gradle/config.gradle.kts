@@ -1,6 +1,5 @@
 import java.nio.file.Files
 import java.util.Properties
-import kotlin.apply
 import kotlin.io.path.exists
 import kotlin.io.path.isSymbolicLink
 import kotlin.io.path.notExists
