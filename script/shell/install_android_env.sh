@@ -45,7 +45,7 @@ if ! grep -q ANDROID_SDK_ROOT "$ENV_CONFIG_FILE"; then
   cat <<'EOF' >> "$ENV_CONFIG_FILE"
 
 # >>> Android SDK 设置 >>>
-export ANDROID_SDK_ROOT=$HOME/android-sdk
+export ANDROID_SDK_ROOT=$HOME/Android/Sdk
 export PATH=$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$PATH
 export PATH=$ANDROID_SDK_ROOT/platform-tools:$PATH
 export PATH=$ANDROID_SDK_ROOT/emulator:$PATH
@@ -57,7 +57,7 @@ else
 fi
 
 # 生效当前终端
-export ANDROID_SDK_ROOT="$USER_HOME/android-sdk"
+export ANDROID_SDK_ROOT="$USER_HOME/Android/Sdk"
 export PATH="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$PATH"
 export PATH="$ANDROID_SDK_ROOT/platform-tools:$PATH"
 export PATH="$ANDROID_SDK_ROOT/emulator:$PATH"
