@@ -1,7 +1,6 @@
 #!/bin/bash
 set -e
 
-# 定义脚本信息数组
 scripts=(
     "Linux配置远程桌面环境:install_desktop.sh"
     "Linux配置Android SDK开发环境:install_android_env.sh"
@@ -10,7 +9,7 @@ scripts=(
 )
 
 print_menu() {
-    echo "请输入序号执行脚本（可多选，空格或逗号分隔，例如：0 2 3）："
+    echo "请输入序号执行脚本（可多选，空格或逗号分隔，例如：0 2 3），或输入 all 执行全部："
     for i in "${!scripts[@]}"; do
         echo "$i --- ${scripts[$i]%%:*}"
     done
@@ -18,11 +17,10 @@ print_menu() {
 
 run_script() {
     local idx=$1
-    if [ "$idx" -ge 0 ] && [ "$idx" -lt "${#scripts[@]}" ]; then
+    if [[ "$idx" =~ ^[0-9]+$ ]] && [ "$idx" -ge 0 ] && [ "$idx" -lt "${#scripts[@]}" ]; then
         script_info="${scripts[$idx]}"
         script_name="${script_info%%:*}"
         script_file="${script_info#*:}"
-
         echo "执行脚本: $script_name"
         sudo /bin/bash -c "$(curl -fsSL "${prefix_url}${script_file}")"
     else
@@ -39,10 +37,16 @@ else
     input="$*"
 fi
 
-# 把逗号替换成空格，方便分割
-input="${input//,/ }"
+input="$(echo "$input" | tr ',，' ' ')"  # 支持中文逗号
+input="$(echo "$input" | xargs)"         # 去除前后多余空格
 
-# 遍历所有输入的序号并执行对应脚本
-for idx in $input; do
-    run_script "$idx"
-done
+if [[ "$input" == "all" ]]; then
+    for i in "${!scripts[@]}"; do
+        run_script "$i"
+    done
+else
+    mapfile -t indices < <(echo "$input" | tr ' ' '\n' | grep -E '^[0-9]+$')
+    for idx in "${indices[@]}"; do
+        run_script "$idx"
+    done
+fi

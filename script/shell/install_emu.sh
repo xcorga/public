@@ -127,5 +127,5 @@ echo "redroid安卓模拟器部署完成"
 serverIp=$(curl -s ifconfig.me)
 echo "浏览器打开'$serverIp:8000'查看设备列表"
 # echo "使用scrcpy -s '$serverIp:5555'连接远程模拟器"
-echo "打不开请联系运维打开端口"
+echo "如果打不开请联系运维开放对应端口"
 
