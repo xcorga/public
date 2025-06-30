@@ -9,8 +9,7 @@ USER_HOME=$(eval echo "~$REAL_USER")
 # 获取最新版本的command-tools下载链接
 get_latest_cmd_tools_url() {
   local url
-  url=$(curl -s https://developer.android.com/studio#command-tools | \
-    grep -Eo 'https://dl\.google\.com/android/repository/commandlinetools-linux-[0-9]+_latest\.zip' | head -1)
+  url=$(curl -s https://developer.android.com/studio#command-tools | grep -Eo 'https://dl\.google\.com/android/repository/commandlinetools-linux-[0-9]+_latest\.zip' | head -1)
 
   if [[ -z "$url" ]]; then
     echo "Error: 未能获取最新命令行工具下载链接" >&2
