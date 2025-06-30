@@ -35,7 +35,7 @@ fi
 # 安装ws-scrcpy
 if ! docker ps -a --format '{{.Names}}' | grep -q "ws-scrcpy"; then
   # 手动打包ws-scrcpy镜像，docker仓库里面的太老了
-  docker build -t ws-scrcpy -f - "$(mktemp -d)" <<EOF
+  docker build -t ws-scrcpy - << EOF
 FROM node:18
 MAINTAINER Scavin <scavin@appinn.com>
 

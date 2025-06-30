@@ -26,9 +26,9 @@ private object FileMappingHelper {
         val configDir = rootProject.findProperty("APP_CONFIG_DIR") as? String // Gradle -P参数
             ?: loadPropertiesOrNull(rootProject.file("local.properties"))?.getProperty("config.dir") // 从local.properties读取config.dir属性
             ?: System.getenv("APP_CONFIG_DIR") // 环境变量
-            ?: throw IllegalArgumentException("Please configure the config.dir property in local.properties or configure the APP_CONFIG_DIR environment variable!")
+            ?: error("Please configure the config.dir property in local.properties or set APP_CONFIG_DIR environment variable.")
 
-        println("Reading config.dir from local.properties: $configDir")
+        println("Using config dir: $configDir")
 
         // 从file-mapping.txt读取文件映射关系
         val mappingList = readMappingFile(
@@ -40,7 +40,7 @@ private object FileMappingHelper {
         // 映射后的路径写入.gitignore
         modifyGitIgnoreFile(
             file = rootProject.file(".gitignore"),
-            newContent = mappingList.map { it.target.toFile().toRelativeString(rootProject.projectDir) }
+            newContent = mappingList.map { it.target.toFile().toRelativeString(rootProject.projectDir).replace(File.separatorChar, '/') }
         )
 
         // 开始映射
@@ -48,30 +48,20 @@ private object FileMappingHelper {
     }
 
     private fun loadPropertiesOrNull(file: File): Properties? {
-        return if (file.exists()) {
-            Properties().apply {
-                file.inputStream().use { load(it) }
-            }
-        } else {
-            null
-        }
+        return if (file.exists()) Properties().apply { file.inputStream().use { load(it) } } else null
     }
 
     private fun readMappingFile(file: File, sourceDir: File, targetDir: File): List<Mapping> {
         return file.useLines { lines ->
             lines.mapIndexed { index, line ->
-                val split = line.splitToSequence("->")
+                val parts = line.splitToSequence("->")
                     .map { it.trim() }
                     .filter { it.isNotBlank() }
                     .toList()
-                if (split.size != 2) {
-                    throw IllegalArgumentException("Error in line ${index + 1}: '$line' is not in the correct 'key->value' format.")
-                }
-                val source = sourceDir.resolve(split[0]).toPath()
-                val target = targetDir.resolve(split[1]).toPath()
-                if (source.notExists()) {
-                    throw IllegalArgumentException("Source file does not exist: ${source.toAbsolutePath()}")
-                }
+                if (parts.size != 2) error("Line ${index + 1} invalid format: '$line'")
+                val source = sourceDir.resolve(parts[0]).toPath()
+                val target = targetDir.resolve(parts[1]).toPath()
+                if (source.notExists()) error("Source not found: ${source.toAbsolutePath()}")
                 Mapping(source = source, target = target)
             }.toList()
         }
@@ -92,9 +82,9 @@ private object FileMappingHelper {
             }
             if (text != newText) {
                 file.writeText(newText)
-                println("Updating mapping rules in the .gitignore file")
+                println("Updated .gitignore with mapping rules.")
             } else {
-                println("Skipping update mapping rules in the .gitignore file")
+                println(".gitignore already up-to-date.")
             }
         } else {
             val newText = buildString {
@@ -108,27 +98,23 @@ private object FileMappingHelper {
                 append(AUTO_GENERATED_END)
             }
             file.appendText(newText)
-            println("Add mapping rules to the .gitignore file")
+            println("Add mapping rules to .gitignore.")
         }
     }
 
     private fun updateSymbolicLink(mapping: Mapping) {
-        val target = mapping.target
-        val source = mapping.source
+        val (source, target) = mapping
 
         if (target.exists()) {
-            if (target.isSymbolicLink()) {
-                // 检查符号链接是否指向正确的源
-                val currentTarget = Files.readSymbolicLink(target)
-                if (currentTarget != source) {
-                    println("(Updating) Mapping file: $source -> $target")
-                    Files.delete(target)  // 删除现有符号链接
-                    Files.createSymbolicLink(target, source)  // 创建新的符号链接
-                } else {
-                    println("(Skipping) Mapping file: $source -> $target")
-                }
+            if (!target.isSymbolicLink()) error("Target exists but is not a symlink: $target")
+            // 检查符号链接是否指向正确的源
+            val current = Files.readSymbolicLink(target)
+            if (current != source) {
+                println("Updating symlink: $target → $source")
+                Files.delete(target)  // 删除现有符号链接
+                Files.createSymbolicLink(target, source)  // 创建新的符号链接
             } else {
-                throw RuntimeException("Target is not a symbolic link: $target")
+                println("Symlink already correct: $target")
             }
         } else {
             // 确保符号链接的父目录存在
@@ -137,7 +123,7 @@ private object FileMappingHelper {
             Files.deleteIfExists(target)
             // 创建符号链接
             Files.createSymbolicLink(target, source)
-            println("Mapping file: $source -> $target")
+            println("Created symlink: $target → $source")
         }
     }
 }
