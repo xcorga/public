@@ -7,14 +7,31 @@ REAL_USER=$(logname)
 # 安全解析该用户的 home 目录
 USER_HOME=$(eval echo "~$REAL_USER")
 
+# 获取最新版本的android_studio下载链接
+get_latest_android_studio_url() {
+  local url
+  url=$(curl -s https://developer.android.google.cn/studio | \
+    grep -oE 'https://redirector\.gvt1\.com/edgedl/android/studio/ide-zips/[0-9\.]+/android-studio-[^"]+linux\.tar\.gz' | \
+    head -n 1)
+
+  if [[ -z "$url" ]]; then
+    echo "❌ 无法从官网获取最新下载链接。" >&2
+    return 1
+  fi
+
+  echo "$url"
+}
+
 echo "📥 下载 Android Studio..."
 # 在临时目录下载文件
 cd /tmp
+
 # 删除之前下载的文件
 sudo rm -f android-studio.tar.gz
-wget https://redirector.gvt1.com/edgedl/android/studio/ide-zips/2024.3.2.15/android-studio-2024.3.2.15-linux.tar.gz -O android-studio.tar.gz
+wget "$(get_latest_android_studio_url)" -O android-studio.tar.gz
 
 echo "📦 解压并安装 Android Studio..."
+sudo rm -rf android-studio
 tar -xzf android-studio.tar.gz
 # 卸载之前的版本
 sudo rm -rf /opt/android-studio

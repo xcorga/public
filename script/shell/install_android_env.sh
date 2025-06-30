@@ -6,6 +6,20 @@ REAL_USER=$(logname)
 # 安全解析该用户的 home 目录
 USER_HOME=$(eval echo "~$REAL_USER")
 
+# 获取最新版本的command-tools下载链接
+get_latest_cmd_tools_url() {
+  local url
+  url=$(curl -s https://developer.android.com/studio#command-tools | \
+    grep -Eo 'https://dl\.google\.com/android/repository/commandlinetools-linux-[0-9]+_latest\.zip' | head -1)
+
+  if [[ -z "$url" ]]; then
+    echo "Error: 未能获取最新命令行工具下载链接" >&2
+    return 1
+  fi
+
+  echo "$url"
+}
+
 echo "📦 Step 1: 安装必要依赖..."
 sudo apt update
 sudo apt install -y openjdk-21-jdk wget unzip curl lib32z1 libstdc++6 libncurses5
@@ -16,7 +30,7 @@ echo "✅ 依赖安装完成。"
 SDK_ROOT="$USER_HOME/Android/Sdk"
 TOOLS_DIR="$SDK_ROOT/cmdline-tools"
 TOOL_VERSION="latest"
-SDK_ZIP_URL="https://dl.google.com/android/repository/commandlinetools-linux-13114758_latest.zip"
+SDK_ZIP_URL=$(get_latest_cmd_tools_url)
 
 # 判断是否已经安装了commandline tools
 if [ ! -d "$TOOLS_DIR/$TOOL_VERSION" ]; then
