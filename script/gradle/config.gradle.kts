@@ -5,6 +5,15 @@ import kotlin.io.path.isSymbolicLink
 import kotlin.io.path.notExists
 
 private object FileMappingHelper {
+    /**
+     * 配置变量：配置目录的相对路径
+     */
+    const val CONFIG_PROPERTY_NAME = "APP_CONFIG_DIR"
+
+    /**
+     * 配置根目录
+     */
+    const val CONFIG_SOURCE_ROOT = "config/"
 
     const val AUTO_GENERATED_BEGIN = "# === AUTO-GENERATED: DO NOT EDIT ==="
 
@@ -23,17 +32,19 @@ private object FileMappingHelper {
 
     fun doMapping(rootProject: Project) {
         // 按照以下优先级来决定使用哪个配置目录
-        val configDir = rootProject.findProperty("APP_CONFIG_DIR") as? String // Gradle -P参数
-            ?: loadPropertiesOrNull(rootProject.file("local.properties"))?.getProperty("config.dir") // 从local.properties读取config.dir属性
-            ?: System.getenv("APP_CONFIG_DIR") // 环境变量
-            ?: error("Please configure the config.dir property in local.properties or set APP_CONFIG_DIR environment variable.")
+        val config = rootProject.findProperty(CONFIG_PROPERTY_NAME) as? String // Gradle -P参数
+            ?: loadPropertiesOrNull(rootProject.file("local.properties"))?.getProperty(CONFIG_PROPERTY_NAME) // 从local.properties读取
+            ?: System.getenv(CONFIG_PROPERTY_NAME) // 环境变量
+            ?: error("Please configure the $CONFIG_PROPERTY_NAME property in local.properties or set $CONFIG_PROPERTY_NAME environment variable.")
 
-        println("Using config dir: $configDir")
+        val configRoot = rootProject.file(CONFIG_SOURCE_ROOT)
+        val configDir = configRoot.resolve(config)
+        println("Using config: $configDir")
 
-        // 从file-mapping.txt读取文件映射关系
+        // 从mapping.txt读取文件映射关系
         val mappingList = readMappingFile(
-            file = rootProject.file("file-mapping.txt"),
-            sourceDir = rootProject.file(configDir),
+            file = configRoot.resolve("mapping.txt"),
+            sourceDir = configDir,
             targetDir = rootProject.projectDir
         )
 

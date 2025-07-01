@@ -9,7 +9,7 @@ else
 fi
 
 # 安装内核模块扩展包
-apt install linux-modules-extra-`uname -r`
+apt install -y linux-modules-extra-`uname -r`
 # 加载binder_linux模块
 modprobe binder_linux devices="binder,hwbinder,vndbinder"
 
@@ -26,7 +26,7 @@ if ! docker ps -a --format '{{.Names}}' | grep -q "$containerName"; then
     -p 5555:5555 \
     --name "$containerName" \
     --restart=unless-stopped \
-    redroid/redroid:15.0.0-latest
+    redroid/redroid:16.0.0_64only-latest
 else
   echo "$containerName 已安装"
   docker start "$containerName"
