@@ -3,8 +3,8 @@ set -e
 
 scripts=(
     "Linux配置远程桌面环境:install_desktop.sh"
-    "Linux配置Android SDK开发环境:install_android_env.sh"
     "Linux安装或更新Android Studio:install_android_studio.sh"
+    "Linux配置Android SDK开发环境:install_android_env.sh"
     "Linux安装安卓15模拟器:install_emu.sh"
 )
 
