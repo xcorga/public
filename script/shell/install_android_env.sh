@@ -21,7 +21,7 @@ get_latest_cmd_tools_url() {
 
 echo "📦 Step 1: 安装必要依赖..."
 sudo apt update
-sudo apt install -y wget unzip curl lib32z1 libstdc++6 libncurses5
+sudo apt install -y wget unzip curl
 
 echo "✅ 依赖安装完成。"
 
@@ -76,6 +76,9 @@ else
 fi
 
 # 生效当前终端
+export JAVA_HOME=/opt/android-studio/jbr
+export PATH=$JAVA_HOME/bin:$PATH
+
 export ANDROID_SDK_ROOT="$USER_HOME/Android/Sdk"
 export PATH="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$PATH"
 export PATH="$ANDROID_SDK_ROOT/platform-tools:$PATH"

@@ -26,7 +26,9 @@ if ! docker ps -a --format '{{.Names}}' | grep -q "$containerName"; then
     -p 5555:5555 \
     --name "$containerName" \
     --restart=unless-stopped \
-    redroid/redroid:16.0.0_64only-latest
+    aureliolo/redroid:14.0.0_amd64_with_gapps
+    # darknightlab/redroid-14-gms
+    # redroid/redroid:16.0.0_64only-latest
 else
   echo "$containerName 已安装"
   docker start "$containerName"
