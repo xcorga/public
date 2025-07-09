@@ -14,7 +14,9 @@ sudo systemctl enable xrdp
 sudo systemctl start xrdp
 
 echo "🛠️ 配置 xrdp 使用 Xfce..."
+# xrdp 登录时使用 startxfce4 启动 XFCE 桌面环境
 echo "startxfce4" > ~/.xsession
+# /etc/skel/ 是系统在创建新用户时默认复制配置文件的地方
 sudo cp ~/.xsession /etc/skel/.xsession
 
 echo "🔓 开放 RDP 端口..."

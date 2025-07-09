@@ -54,7 +54,6 @@ Type=Application
 Name=Android Studio
 Icon=/opt/android-studio/bin/studio.png
 Exec=bash -lc "/opt/android-studio/bin/studio.sh" %f
-Exec="/opt/android-studio/bin/studio.sh" %f
 Comment=The official IDE for Android development
 Categories=Development;IDE;
 Terminal=false
