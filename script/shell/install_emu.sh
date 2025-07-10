@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+REDROID_CONTAINER="redroid"
+WS_SCRCPY_CONTAINER="ws-scrcpy"
+
 # 安装docker
 install_docker() {
   if command -v docker &>/dev/null; then
@@ -26,22 +29,34 @@ EOF
 
 # 安装redroid
 install_redroid() {
-  containerName="redroid"
-  if ! docker ps -a --format '{{.Names}}' | grep -q "$containerName"; then
+  if ! docker ps -a --format '{{.Names}}' | grep -q "$REDROID_CONTAINER"; then
+  
+    docker build -t redroid - << EOF
+FROM redroid/redroid:11.0.0-latest
+
+RUN apt-get update && apt-get install -y curl unzip && rm -rf /var/lib/apt/lists/*
+RUN rm -rf /system/priv-app/PackageInstaller
+RUN curl -L -O https://raw.githubusercontent.com/xcorga/public/refs/heads/main/script/shell/zip/gapps.zip
+RUN unzip gapps.zip -d /
+RUN rm gapps.zip
+EOF
+    # 启动ws-scrcpy容器
+    docker run --name "$WS_SCRCPY_CONTAINER" --restart=unless-stopped -d -p 8000:8000 ws-scrcpy
+
     docker run -itd --privileged \
       -p 5555:5555 \
-      --name "$containerName" \
+      --name "$REDROID_CONTAINER" \
       --restart=unless-stopped \
       redroid/redroid:11.0.0-latest
   else
-    echo "$containerName 已安装"
-    docker start "$containerName"
+    echo "$REDROID_CONTAINER 已安装"
+    docker start "$REDROID_CONTAINER"
   fi
 }
 
 # 安装ws-scrcpy
 install_ws_scrcpy() {
-  if ! docker ps -a --format '{{.Names}}' | grep -q "ws-scrcpy"; then
+  if ! docker ps -a --format '{{.Names}}' | grep -q "$WS_SCRCPY_CONTAINER"; then
     # 手动打包ws-scrcpy镜像，docker仓库里面的太老了
     docker build -t ws-scrcpy - << EOF
 FROM node:18
@@ -61,13 +76,14 @@ EXPOSE 8000
 CMD ["node","dist/index.js"]
 EOF
     # 启动ws-scrcpy容器
-    docker run --name ws-scrcpy --restart=unless-stopped -d -p 8000:8000 ws-scrcpy
+    docker run --name "$WS_SCRCPY_CONTAINER" --restart=unless-stopped -d -p 8000:8000 ws-scrcpy
   else
-    echo "ws-scrcpy 已安装"
-    docker start ws-scrcpy
+    echo "$WS_SCRCPY_CONTAINER 已安装"
+    docker start "$WS_SCRCPY_CONTAINER"
   fi
 }
 
+# 配置ws-scrcpy自动连接模拟器
 configure_ws_scrcpy_auto_connect() {
   # 写入脚本，监听端口可用时ws-scrcpy自动连接adb
   cat << 'EOF' > /usr/local/bin/adb_connect_docker.sh
@@ -134,6 +150,47 @@ EOF
   sudo systemctl start adb_connect_docker.service
 }
 
+configure_gapps_to_emu() {
+  cd /tmp
+  if [ -e gapp.zip ]; then
+    echo "gapp.zip 文件已存在，不需要下载。"
+  else
+    curl -L -O https://raw.githubusercontent.com/xcorga/public/refs/heads/main/script/shell/zip/gapp.zip
+    echo "gapp.zip 下载完成。"
+    unzip gapp.zip -d gapp
+  fi
+
+  docker exec $REDROID_CONTAINER rm -rf /system/priv-app/PackageInstaller
+  docker cp gapp "$REDROID_CONTAINER:/"
+
+  ADB_TARGET="$CONTAINER_IP:$ADB_PORT"
+  MAX_RETRIES=3600
+  # 等待adb连接成功
+  for i in $(seq 1 $MAX_RETRIES); do
+    echo "$(date) - 第 $i 次尝试连接 adb: $ADB_TARGET"
+    docker exec ws-scrcpy adb connect "$ADB_TARGET"
+
+    # 判断是否连接成功（可按需启用更严格检测）
+    if docker exec ws-scrcpy adb devices | grep -q "$ADB_TARGET"; then
+      echo "$(date) - 成功连接到 adb: $ADB_TARGET"
+      docker exec ws-scrcpy adb -s "$ADB_TARGET" root
+      exit 0
+    fi
+
+    echo "$(date) - 连接失败，等待重试..."
+    sleep 3
+  done
+
+docker cp 
+docker exec $WS_SCRCPY_CONTAINER adb -s "$deviceIpPort" shell "rm -rf system/priv-app/PackageInstaller"
+cp -r gapp.zip /home/ubuntu/apk
+docker exec $WS_SCRCPY_CONTAINER adb -s "$deviceIpPort" push /apk/gapp.zip /
+docker exec $WS_SCRCPY_CONTAINER adb -s "$deviceIpPort" shell "unzip -o /gapp.zip"
+docker exec $WS_SCRCPY_CONTAINER adb -s "$deviceIpPort" shell "pm grant com.google.android.gms android.permission.ACCESS_COARSE_LOCATION"
+docker exec $WS_SCRCPY_CONTAINER adb -s "$deviceIpPort" shell "pm grant com.google.android.gms android.permission.ACCESS_FINE_LOCATION"
+docker exec $WS_SCRCPY_CONTAINER adb -s "$deviceIpPort" shell "pm grant com.google.android.setupwizard android.permission.READ_PHONE_STATE"
+docker exec $WS_SCRCPY_CONTAINER adb -s "$deviceIpPort" shell "pm grant com.google.android.setupwizard android.permission.READ_CONTACTS"
+}
 
 install_docker
 install_binder_linux
@@ -143,7 +200,7 @@ configure_ws_scrcpy_auto_connect
 echo "redroid安卓模拟器部署完成"
 
 echo "🛠️ 开始配置OpenGApps到模拟器"
-
+configure_gapps_to_emu
 
 serverIp=$(curl -s ifconfig.me)
 echo "浏览器打开'$serverIp:8000'查看设备列表"
