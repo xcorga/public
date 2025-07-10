@@ -31,19 +31,6 @@ EOF
 # 安装redroid
 install_redroid() {
   if ! docker ps -a --format '{{.Names}}' | grep -q "$REDROID_CONTAINER"; then
-
-    docker build -t redroid - << EOF
-FROM redroid/redroid:11.0.0-latest
-
-RUN apt-get update && apt-get install -y curl unzip && rm -rf /var/lib/apt/lists/*
-RUN rm -rf /system/priv-app/PackageInstaller
-RUN curl -L -O https://raw.githubusercontent.com/xcorga/public/refs/heads/main/script/shell/zip/gapps.zip
-RUN unzip gapps.zip -d /
-RUN rm gapps.zip
-EOF
-    # 启动ws-scrcpy容器
-    docker run --name "$WS_SCRCPY_CONTAINER" --restart=unless-stopped -d -p 8000:8000 ws-scrcpy
-
     docker run -itd --privileged \
       -p "$REDROID_PORT:$REDROID_PORT" \
       --name "$REDROID_CONTAINER" \
