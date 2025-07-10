@@ -30,7 +30,7 @@ EOF
 # 安装redroid
 install_redroid() {
   if ! docker ps -a --format '{{.Names}}' | grep -q "$REDROID_CONTAINER"; then
-  
+
     docker build -t redroid - << EOF
 FROM redroid/redroid:11.0.0-latest
 
@@ -155,13 +155,10 @@ configure_gapps_to_emu() {
   if [ -e gapp.zip ]; then
     echo "gapp.zip 文件已存在，不需要下载。"
   else
-    curl -L -O https://raw.githubusercontent.com/xcorga/public/refs/heads/main/script/shell/zip/gapp.zip
-    echo "gapp.zip 下载完成。"
-    unzip gapp.zip -d gapp
+    curl -L -o gapps.zip https://github.com/hhoy/redroid/releases/download/v1.0.0/gapps.zip
+    echo "gapps.zip 下载完成。"
+    unzip gapps.zip -d gapps
   fi
-
-  docker exec $REDROID_CONTAINER rm -rf /system/priv-app/PackageInstaller
-  docker cp gapp "$REDROID_CONTAINER:/"
 
   ADB_TARGET="$CONTAINER_IP:$ADB_PORT"
   MAX_RETRIES=3600
@@ -180,16 +177,10 @@ configure_gapps_to_emu() {
     echo "$(date) - 连接失败，等待重试..."
     sleep 3
   done
-
-docker cp 
-docker exec $WS_SCRCPY_CONTAINER adb -s "$deviceIpPort" shell "rm -rf system/priv-app/PackageInstaller"
-cp -r gapp.zip /home/ubuntu/apk
-docker exec $WS_SCRCPY_CONTAINER adb -s "$deviceIpPort" push /apk/gapp.zip /
-docker exec $WS_SCRCPY_CONTAINER adb -s "$deviceIpPort" shell "unzip -o /gapp.zip"
-docker exec $WS_SCRCPY_CONTAINER adb -s "$deviceIpPort" shell "pm grant com.google.android.gms android.permission.ACCESS_COARSE_LOCATION"
-docker exec $WS_SCRCPY_CONTAINER adb -s "$deviceIpPort" shell "pm grant com.google.android.gms android.permission.ACCESS_FINE_LOCATION"
-docker exec $WS_SCRCPY_CONTAINER adb -s "$deviceIpPort" shell "pm grant com.google.android.setupwizard android.permission.READ_PHONE_STATE"
-docker exec $WS_SCRCPY_CONTAINER adb -s "$deviceIpPort" shell "pm grant com.google.android.setupwizard android.permission.READ_CONTACTS"
+  docker exec $REDROID_CONTAINER rm -rf /system/priv-app/PackageInstaller
+  docker cp gapps "$REDROID_CONTAINER:/"
+  docker restart $REDROID_CONTAINER
+  rm -rf gapps
 }
 
 install_docker
