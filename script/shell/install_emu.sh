@@ -150,8 +150,9 @@ configure_gapps_to_emu() {
     echo "解压完成。"
   fi
 
-  ADB_TARGET="$CONTAINER_IP:$REDROID_PORT"
-  MAX_RETRIES=3600
+  local CONTAINER_IP="$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "$CONTAINER_NAME")"
+  local ADB_TARGET="$CONTAINER_IP:$REDROID_PORT"
+  local MAX_RETRIES=3600
   # 等待adb连接成功
   for i in $(seq 1 $MAX_RETRIES); do
     echo "$(date) - 第 $i 次尝试连接 adb: $ADB_TARGET"
