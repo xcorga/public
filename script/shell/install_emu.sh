@@ -153,12 +153,14 @@ EOF
 
 configure_gapps_to_emu() {
   cd /tmp
-  if [ -e gapp.zip ]; then
-    echo "gapp.zip 文件已存在，不需要下载。"
+  if [ -d "gapps" ] && [ "$(ls -A gapps)" ]; then
+    echo "gapps 目录已存在且非空，不需要重新下载解压。"
   else
+    echo "开始下载 gapps.zip ..."
     curl -L -o gapps.zip https://github.com/hhoy/redroid/releases/download/v1.0.0/gapps.zip
-    echo "gapps.zip 下载完成。"
-    unzip gapps.zip -d gapps
+    echo "下载完成，开始解压..."
+    unzip -q gapps.zip -d gapps
+    echo "解压完成。"
   fi
 
   ADB_TARGET="$CONTAINER_IP:$REDROID_PORT"
