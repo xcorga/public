@@ -168,13 +168,13 @@ configure_gapps_to_emu() {
   # 等待adb连接成功
   for i in $(seq 1 $MAX_RETRIES); do
     echo "$(date) - 第 $i 次尝试连接 adb: $ADB_TARGET"
-    docker exec ws-scrcpy adb connect "$ADB_TARGET"
+    docker exec "$WS_SCRCPY_CONTAINER" adb connect "$ADB_TARGET" || true
 
     # 判断是否连接成功（可按需启用更严格检测）
-    if docker exec ws-scrcpy adb devices | grep -q "$ADB_TARGET"; then
+    if docker exec "$WS_SCRCPY_CONTAINER" adb devices | grep -q "$ADB_TARGET"; then
       echo "$(date) - 成功连接到 adb: $ADB_TARGET"
       docker exec ws-scrcpy adb -s "$ADB_TARGET" root
-      exit 0
+      break
     fi
 
     echo "$(date) - 连接失败，等待重试..."
