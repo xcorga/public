@@ -34,7 +34,7 @@ tar -xzf android-studio.tar.gz
 # 卸载之前的版本
 sudo rm -rf /opt/android-studio
 sudo mv android-studio /opt/
-sudo ln -sf /opt/android-studio/bin/studio.sh /usr/local/bin/android-studio
+sudo ln -sf /opt/android-studio/bin/studio /usr/local/bin/android-studio
 
 echo "✅ 安装完成！"
 echo "👉 可通过命令 'android-studio' 启动 Android Studio"
@@ -53,7 +53,7 @@ Version=1.0
 Type=Application
 Name=Android Studio
 Icon=/opt/android-studio/bin/studio.png
-Exec=bash -lc "/opt/android-studio/bin/studio.sh" %f
+Exec=/opt/android-studio/bin/studio
 Comment=The official IDE for Android development
 Categories=Development;IDE;
 Terminal=false
@@ -63,7 +63,7 @@ EOF
 chmod +x "$DESKTOP_FILE"
 
 mkdir -p ~/Desktop
-cp $DESKTOP_FILE ~/Desktop/android-studio.desktop
+cp $DESKTOP_FILE ~/Desktop/
 SH_EOF
 
 echo "✅ 快捷方式创建成功！你可以在桌面或者应用菜单中搜索 'Android Studio' 打开它。"

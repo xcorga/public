@@ -2,42 +2,48 @@
 set -e
 
 # 安装docker
-if dpkg -l | grep -q "docker"; then
+install_docker() {
+  if command -v docker &>/dev/null; then
     echo "Docker 已安装"
-else
+  else
     curl -fsSL https://get.docker.com | sudo bash
-fi
+  fi
+}
 
-# 安装内核模块扩展包
-apt install -y linux-modules-extra-`uname -r`
-# 加载binder_linux模块
-modprobe binder_linux devices="binder,hwbinder,vndbinder"
+# 安装binder_linux模块
+install_binder_linux() {
+  # 安装内核模块扩展包
+  apt install -y linux-modules-extra-`uname -r`
+  # 加载binder_linux模块
+  modprobe binder_linux devices="binder,hwbinder,vndbinder"
 
-# 开机自动加载 binder_linux 模块
-echo "binder_linux" | sudo tee /etc/modules-load.d/binder_linux.conf
-sudo tee /etc/modprobe.d/binder_linux.conf <<EOF
+  # 开机自动加载 binder_linux 模块
+  echo "binder_linux" | sudo tee /etc/modules-load.d/binder_linux.conf
+  sudo tee /etc/modprobe.d/binder_linux.conf <<EOF
 options binder_linux devices="binder,hwbinder,vndbinder"
 EOF
+}
 
 # 安装redroid
-containerName="redroid"
-if ! docker ps -a --format '{{.Names}}' | grep -q "$containerName"; then
-  docker run -itd --privileged \
-    -p 5555:5555 \
-    --name "$containerName" \
-    --restart=unless-stopped \
-    aureliolo/redroid:14.0.0_amd64_with_gapps
-    # darknightlab/redroid-14-gms
-    # redroid/redroid:16.0.0_64only-latest
-else
-  echo "$containerName 已安装"
-  docker start "$containerName"
-fi
+install_redroid() {
+  containerName="redroid"
+  if ! docker ps -a --format '{{.Names}}' | grep -q "$containerName"; then
+    docker run -itd --privileged \
+      -p 5555:5555 \
+      --name "$containerName" \
+      --restart=unless-stopped \
+      redroid/redroid:11.0.0-latest
+  else
+    echo "$containerName 已安装"
+    docker start "$containerName"
+  fi
+}
 
 # 安装ws-scrcpy
-if ! docker ps -a --format '{{.Names}}' | grep -q "ws-scrcpy"; then
-  # 手动打包ws-scrcpy镜像，docker仓库里面的太老了
-  docker build -t ws-scrcpy - << EOF
+install_ws_scrcpy() {
+  if ! docker ps -a --format '{{.Names}}' | grep -q "ws-scrcpy"; then
+    # 手动打包ws-scrcpy镜像，docker仓库里面的太老了
+    docker build -t ws-scrcpy - << EOF
 FROM node:18
 MAINTAINER Scavin <scavin@appinn.com>
 
@@ -54,15 +60,17 @@ EXPOSE 8000
 
 CMD ["node","dist/index.js"]
 EOF
-  # 启动ws-scrcpy容器
-  docker run --name ws-scrcpy --restart=unless-stopped -d -p 8000:8000 ws-scrcpy
-else
-  echo "ws-scrcpy 已安装"
-  docker start ws-scrcpy
-fi
+    # 启动ws-scrcpy容器
+    docker run --name ws-scrcpy --restart=unless-stopped -d -p 8000:8000 ws-scrcpy
+  else
+    echo "ws-scrcpy 已安装"
+    docker start ws-scrcpy
+  fi
+}
 
-# 写入脚本，监听端口可用时ws-scrcpy自动连接adb
-cat << 'EOF' > /usr/local/bin/adb_connect_docker.sh
+configure_ws_scrcpy_auto_connect() {
+  # 写入脚本，监听端口可用时ws-scrcpy自动连接adb
+  cat << 'EOF' > /usr/local/bin/adb_connect_docker.sh
 #!/bin/bash
 
 CONTAINER_NAME="redroid"
@@ -103,10 +111,10 @@ echo "$(date) - 超过最大重试次数，连接失败"
 exit 1
 EOF
 
-sudo chmod +x /usr/local/bin/adb_connect_docker.sh
+  sudo chmod +x /usr/local/bin/adb_connect_docker.sh
 
-# 创建 systemd 服务文件
-cat << 'EOF' > /etc/systemd/system/adb_connect_docker.service
+  # 创建 systemd 服务文件
+  cat << 'EOF' > /etc/systemd/system/adb_connect_docker.service
 [Unit]
 Description=等待Docker容器启动并让ws-scrcpy自动连接adb设备
 After=docker.service
@@ -121,11 +129,22 @@ Environment=PATH=/usr/bin:/usr/local/bin
 WantedBy=multi-user.target
 EOF
 
-sudo systemctl daemon-reload
-sudo systemctl enable adb_connect_docker.service
-sudo systemctl start adb_connect_docker.service
+  sudo systemctl daemon-reload
+  sudo systemctl enable adb_connect_docker.service
+  sudo systemctl start adb_connect_docker.service
+}
 
+
+install_docker
+install_binder_linux
+install_redroid
+install_ws_scrcpy
+configure_ws_scrcpy_auto_connect
 echo "redroid安卓模拟器部署完成"
+
+echo "🛠️ 开始配置OpenGApps到模拟器"
+
+
 serverIp=$(curl -s ifconfig.me)
 echo "浏览器打开'$serverIp:8000'查看设备列表"
 # echo "使用scrcpy -s '$serverIp:5555'连接远程模拟器"
