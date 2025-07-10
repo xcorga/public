@@ -2,6 +2,7 @@
 set -e
 
 REDROID_CONTAINER="redroid"
+REDROID_PORT=5555
 WS_SCRCPY_CONTAINER="ws-scrcpy"
 
 # 安装docker
@@ -44,7 +45,7 @@ EOF
     docker run --name "$WS_SCRCPY_CONTAINER" --restart=unless-stopped -d -p 8000:8000 ws-scrcpy
 
     docker run -itd --privileged \
-      -p 5555:5555 \
+      -p "$REDROID_PORT:$REDROID_PORT" \
       --name "$REDROID_CONTAINER" \
       --restart=unless-stopped \
       redroid/redroid:11.0.0-latest
@@ -160,7 +161,7 @@ configure_gapps_to_emu() {
     unzip gapps.zip -d gapps
   fi
 
-  ADB_TARGET="$CONTAINER_IP:$ADB_PORT"
+  ADB_TARGET="$CONTAINER_IP:$REDROID_PORT"
   MAX_RETRIES=3600
   # 等待adb连接成功
   for i in $(seq 1 $MAX_RETRIES); do
