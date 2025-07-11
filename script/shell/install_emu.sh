@@ -177,10 +177,17 @@ configure_gapps_to_emu() {
     [ro.product.manufacturer]="Google"
     [ro.build.fingerprint]="google/redfin/redfin:11/RQ3A.210805.001.A1/7474174:user/release-keys"
   )
-  # 该命令在 Redroid 容器中使用 sed 直接将 /system/build.prop 文件里以 $key= 开头的行替换为 $key=$val。
   for key in "${!PROPS[@]}"; do
     val="${PROPS[$key]}"
-    docker exec "$REDROID_CONTAINER" sed -i "s|^$key=.*|$key=$val|" /system/build.prop
+    echo "🔧 设置 $key = $val"
+
+    docker exec "$CONTAINER_NAME" sh -c "
+      if grep -q '^$key=' /system/build.prop; then
+        sed -i 's|^$key=.*|$key=$val|' /system/build.prop
+      else
+        echo '$key=$val' >> /system/build.prop
+      fi
+    "
   done
 
   docker exec "$REDROID_CONTAINER" rm -rf /system/priv-app/PackageInstaller
