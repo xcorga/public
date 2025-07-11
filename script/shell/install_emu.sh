@@ -172,6 +172,10 @@ configure_gapps_to_emu() {
 
   docker exec "$REDROID_CONTAINER" rm -rf /system/priv-app/PackageInstaller
   docker cp gapps/. "$REDROID_CONTAINER:/"
+  docker exec "$REDROID_CONTAINER" pm grant com.google.android.gms android.permission.ACCESS_COARSE_LOCATION
+  docker exec "$REDROID_CONTAINER" pm grant com.google.android.gms android.permission.ACCESS_FINE_LOCATION
+  docker exec "$REDROID_CONTAINER" pm grant com.google.android.setupwizard android.permission.READ_PHONE_STATE
+  docker exec "$REDROID_CONTAINER" pm grant com.google.android.setupwizard android.permission.READ_CONTACTS
   docker restart "$REDROID_CONTAINER"
   rm -rf gapps
 }
