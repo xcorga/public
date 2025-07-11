@@ -161,6 +161,7 @@ configure_gapps_to_emu() {
     # 判断是否连接成功（可按需启用更严格检测）
     if docker exec "$WS_SCRCPY_CONTAINER" adb devices | grep -q "$ADB_TARGET"; then
       echo "$(date) - 成功连接到 adb: $ADB_TARGET"
+      sleep 1
       docker exec ws-scrcpy adb -s "$ADB_TARGET" root
       break
     fi
@@ -168,9 +169,11 @@ configure_gapps_to_emu() {
     echo "$(date) - 连接失败，等待重试..."
     sleep 3
   done
-  docker exec $REDROID_CONTAINER rm -rf /system/priv-app/PackageInstaller
-  docker cp gapps "$REDROID_CONTAINER:/"
-  docker restart $REDROID_CONTAINER
+
+  docker exec "$REDROID_CONTAINER" "rm -rf system/priv-app/PackageInstaller"
+  docker cp gapps/ "$REDROID_CONTAINER:/"
+  docker exec "$REDROID_CONTAINER" reboot
+  docker restart "$REDROID_CONTAINER"
   rm -rf gapps
 }
 
