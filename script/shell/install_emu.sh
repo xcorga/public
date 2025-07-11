@@ -172,7 +172,6 @@ configure_gapps_to_emu() {
 
   docker exec "$REDROID_CONTAINER" rm -rf /system/priv-app/PackageInstaller
   docker cp gapps/. "$REDROID_CONTAINER:/"
-  docker exec "$REDROID_CONTAINER" reboot
   docker restart "$REDROID_CONTAINER"
   rm -rf gapps
 }
