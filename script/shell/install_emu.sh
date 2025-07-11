@@ -161,7 +161,7 @@ configure_gapps_to_emu() {
     val="${PROPS[$key]}"
     echo "🔧 设置 $key = $val"
 
-    docker exec "$CONTAINER_NAME" sh -c "
+    docker exec "$REDROID_CONTAINER" sh -c "
       if grep -q '^$key=' /system/build.prop; then
         sed -i 's|^$key=.*|$key=$val|' /system/build.prop
       else
