@@ -150,26 +150,6 @@ configure_gapps_to_emu() {
     echo "解压完成。"
   fi
 
-  local CONTAINER_IP="$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "$REDROID_CONTAINER")"
-  local ADB_TARGET="$CONTAINER_IP:$REDROID_PORT"
-  local MAX_RETRIES=3600
-  # 等待adb连接成功
-  for i in $(seq 1 $MAX_RETRIES); do
-    echo "$(date) - 第 $i 次尝试连接 adb: $ADB_TARGET"
-    docker exec "$WS_SCRCPY_CONTAINER" adb connect "$ADB_TARGET" || true
-
-    # 判断是否连接成功（可按需启用更严格检测）
-    if docker exec "$WS_SCRCPY_CONTAINER" adb devices | grep -q "$ADB_TARGET"; then
-      echo "$(date) - 成功连接到 adb: $ADB_TARGET"
-      sleep 1
-      docker exec ws-scrcpy adb -s "$ADB_TARGET" root
-      break
-    fi
-
-    echo "$(date) - 连接失败，等待重试..."
-    sleep 3
-  done
-
   # 伪装机型
   local -A PROPS=(
     [ro.product.model]="Pixel 5"
